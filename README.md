@@ -1,2 +1,2 @@
 # mpc-tui-rs
-MPC inpired TUI lib in Rust
+TUI lib in Rust inspired by MPC UI
