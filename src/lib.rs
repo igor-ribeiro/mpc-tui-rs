@@ -4,16 +4,16 @@ use std::ops::{Add, Sub};
 
 use ncurses::*;
 
-const REGULAR_PAIR: i16 = 0;
-const HIGHLIGHT_PAIR: i16 = 1;
+pub const REGULAR_PAIR: i16 = 0;
+pub const HIGHLIGHT_PAIR: i16 = 1;
 
-enum Mode {
+pub enum Mode {
     Normal,
     Insert,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-struct Pos(i32, i32);
+pub struct Pos(pub i32, pub i32);
 
 impl Add for Pos {
     type Output = Pos;
@@ -30,42 +30,42 @@ impl Sub for Pos {
 }
 
 #[derive(Debug, Clone)]
-enum ElementKind {
+pub enum ElementKind {
     Input { label: String, value: String },
     Button { label: String, active: bool },
     Title(String),
 }
 
 #[derive(Debug, Clone)]
-struct Element {
-    kind: ElementKind,
-    pos: Pos,
-    width: i32,
-    focusable: bool,
+pub struct Element {
+    pub kind: ElementKind,
+    pub pos: Pos,
+    pub width: i32,
+    pub focusable: bool,
 }
 
 #[derive(Debug, Copy, Clone)]
-struct Screen {
-    y: i32,
-    x: i32,
-    width: i32,
-    height: i32,
+pub struct Screen {
+    pub y: i32,
+    pub x: i32,
+    pub width: i32,
+    pub height: i32,
 }
 
-struct App {
-    key: Option<i32>,
-    focus: Option<&'static str>,
-    mode: Mode,
-    screen: Screen,
-    cursor: Pos,
-    elements: Vec<Element>,
-    focusabled_elements: Vec<Element>,
-    render_cursor: Pos,
-    actions: Vec<&'static str>,
+pub struct App {
+    pub key: Option<i32>,
+    pub focus: Option<&'static str>,
+    pub mode: Mode,
+    pub screen: Screen,
+    pub cursor: Pos,
+    pub elements: Vec<Element>,
+    pub focusabled_elements: Vec<Element>,
+    pub render_cursor: Pos,
+    pub actions: Vec<&'static str>,
 }
 
 impl App {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             key: None,
             focus: None,
@@ -84,7 +84,7 @@ impl App {
         }
     }
 
-    fn render_container(&mut self) {
+    pub fn render_container(&mut self) {
         let x = self.screen.x;
 
         mv(0, x);
@@ -111,7 +111,7 @@ impl App {
         }
     }
 
-    fn render_actions(&mut self, active: Option<usize>) {
+    pub fn render_actions(&mut self, active: Option<usize>) {
         let count = self.actions.len() as i32;
         let actions = self.actions.clone();
         let size = (self.screen.width / count) as usize;
@@ -138,16 +138,16 @@ impl App {
         }
     }
 
-    fn get_key_char(&mut self) -> Option<char> {
+    pub fn get_key_char(&mut self) -> Option<char> {
         self.key.take().map(|k| k as u8 as char)
     }
 
-    fn reset(&mut self) {
+    pub fn reset(&mut self) {
         self.elements = Vec::new();
         self.render_cursor = Pos(self.screen.x + 1, 1);
     }
 
-    fn create_title(&mut self, title: &str) -> Element {
+    pub fn create_title(&mut self, title: &str) -> Element {
         let width = self.screen.width as usize;
         let size = title.len().min(width);
         let trimmed_title = if size == width {
@@ -181,20 +181,20 @@ impl App {
         element.clone()
     }
 
-    fn move_render_cursor(&mut self, x: i32, y: i32) -> Pos {
+    pub fn move_render_cursor(&mut self, x: i32, y: i32) -> Pos {
         self.render_cursor.0 += x;
         self.render_cursor.1 += y;
 
         self.render_cursor.clone()
     }
 
-    fn create_input(&mut self, label: &str, value: &str, width: Option<usize>) -> Element {
-        let input_label = format!("{}: ", label);
+    pub fn create_input(&mut self, label: &str, value: &str, width: Option<usize>) -> Element {
+        let input_label = format!("{}:", label);
         let size = input_label.len();
         let width = width.unwrap_or(size + 1).max(size + 1);
 
         let input_value = format!("{:<width$}", value, width = width);
-        let input_size = format!("{}{}", input_label, input_value).len() as i32;
+        let input_size = format!("{}{} ", input_label, input_value).len() as i32;
 
         let pos = Pos(self.render_cursor.0, self.render_cursor.1);
 
@@ -228,7 +228,7 @@ impl App {
         element
     }
 
-    fn create_button(&mut self, label: &str, size: Option<usize>, active: bool) -> Element {
+    pub fn create_button(&mut self, label: &str, size: Option<usize>, active: bool) -> Element {
         let button_label = format!("[{:^w$}]", label, w = size.unwrap_or(label.len() + 2));
         let size = button_label.len() as i32;
 
@@ -260,11 +260,11 @@ impl App {
         element
     }
 
-    fn next_row(&mut self) {
+    pub fn next_row(&mut self) {
         self.render_cursor = Pos(self.screen.x + 1, self.render_cursor.1 + 1);
     }
 
-    fn move_up(&mut self) {
+    pub fn move_up(&mut self) {
         self.focusabled_elements = self
             .elements
             .clone()
@@ -274,7 +274,7 @@ impl App {
             .collect::<Vec<_>>();
     }
 
-    fn move_down(&mut self) {
+    pub fn move_down(&mut self) {
         self.focusabled_elements = self
             .elements
             .clone()
@@ -283,7 +283,7 @@ impl App {
             .collect::<Vec<_>>();
     }
 
-    fn move_left(&mut self) {
+    pub fn move_left(&mut self) {
         self.focusabled_elements = self
             .elements
             .clone()
@@ -292,7 +292,7 @@ impl App {
             .collect::<Vec<_>>();
     }
 
-    fn move_right(&mut self) {
+    pub fn move_right(&mut self) {
         self.focusabled_elements = self
             .elements
             .clone()
@@ -301,7 +301,7 @@ impl App {
             .collect::<Vec<_>>();
     }
 
-    fn update_focus(&mut self) {
+    pub fn update_focus(&mut self) {
         if self.focusabled_elements.is_empty() {
             return;
         }
@@ -309,113 +309,11 @@ impl App {
         self.cursor = self.focusabled_elements[0].pos.clone();
     }
 
-    fn focus_element(&mut self, index: usize) {
+    pub fn focus_element(&mut self, _index: usize) {
         let element = self.elements.iter().find(|el| el.focusable);
 
         if let Some(element) = element {
             self.cursor = element.pos.clone();
         }
     }
-}
-
-fn main() {
-    initscr();
-    keypad(stdscr(), true);
-    noecho();
-    curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
-    timeout(16);
-
-    start_color();
-    init_pair(REGULAR_PAIR, COLOR_WHITE, COLOR_BLACK);
-    init_pair(HIGHLIGHT_PAIR, COLOR_BLACK, COLOR_WHITE);
-
-    let mut quit = false;
-    let mut app = App::new();
-    let mut notification = String::new();
-    let mut started = false;
-    let mut active_action: Option<usize> = None;
-
-    while !quit {
-        erase();
-
-        let mut width = 0;
-        let mut height = 0;
-        getmaxyx(stdscr(), &mut height, &mut width);
-
-        app.screen.x = (width - app.screen.width) / 2;
-        app.actions = vec!["TODO", "DONE"];
-
-        app.render_container();
-
-        app.render_cursor = Pos(app.screen.x + 1, 1);
-
-        if !started {
-            app.cursor = app.render_cursor.clone();
-        }
-
-        app.create_title("Play/Record");
-        app.create_input("Seq", "1-(unused)", Some(20));
-        app.create_input("BPM", "120.0", None);
-        //
-        // app.create_input("Name", "(untitled)", Some(20));
-        // app.next_row();
-        // app.create_title("Play/Record");
-        //
-        // app.create_input("Size", "10", None);
-
-        if !started {
-            app.focus_element(0);
-            app.update_focus();
-        }
-
-        app.render_actions(active_action);
-        // app.render_elements();
-
-        if let Some(key) = app.get_key_char() {
-            match key {
-                'k' => app.move_up(),
-                'j' => app.move_down(),
-                'l' => app.move_right(),
-                'h' => app.move_left(),
-                k => {
-                    let digit = key.to_digit(16);
-
-                    if let Some(number) = digit {
-                        let number = number as usize;
-                        if number <= app.actions.len() {
-                            active_action = Some(number);
-                        }
-                    } else {
-                        notification.clear();
-                    }
-
-                    app.key = Some(key as u8 as i32);
-                }
-            }
-
-            if 'q' == key {
-                quit = true;
-            }
-        }
-
-        mv(app.screen.height + 2, app.screen.x);
-        notification.push_str("test");
-        addstr(&notification);
-
-        app.update_focus();
-
-        refresh();
-
-        let key = getch();
-
-        if key != ERR {
-            app.key = Some(key);
-        }
-
-        app.reset();
-        notification.clear();
-        started = true;
-    }
-
-    endwin();
 }
